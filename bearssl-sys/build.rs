@@ -10,17 +10,7 @@ use git2::{ErrorCode, Repository};
 fn main() {
     let bearssl_root = find_bearssl_root();
     compile(&bearssl_root);
-
-    // println!("cargo:rerun-if-changed=wrapper.h");
-    //
-    // let bindings = bindgen::Builder::default()
-    //     .header("wrapper.h")
-    //     .generate()
-    //     .expect("Unable to generate bindings");
-    //
-    // let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
-    // bindings.write_to_file(out_path.join("bindings.rs"))
-    //         .expect("Couldn't write bindings!");
+    gen_bindings(&bearssl_root);
 }
 
 fn find_bearssl_root() -> PathBuf {
@@ -386,9 +376,6 @@ fn compile(root: &PathBuf) {
         // let src_files : [&'static str] = (*(*list).iter()).collect();
 
         let mut src_files_with_paths = Vec::new();
-        //let lib_name = PathBuf::from(list[0]).iter().collect().nth(1);
-        //let lib_name = PathBuf::from(list[0]).components().nth(1).unwrap();
-
         // Extract a library name from the source directory structure.
         let first_src = PathBuf::from(list[0]);
         let lib_name = PathBuf::from(first_src.components().nth(1).unwrap().as_os_str());
@@ -409,6 +396,17 @@ fn compile(root: &PathBuf) {
     }
 }
 
-fn gen_bindings() {
-    unimplemented!();
+fn gen_bindings(root: &PathBuf) {
+    let header = root.join("inc/bearssl.h");
+
+    println!("cargo:rerun-if-changed={}", header.to_str().unwrap());
+
+    let bindings = bindgen::Builder::default()
+        .header(header.to_str().unwrap())
+        .generate()
+        .expect("Unable to generate bindings");
+
+    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+    bindings.write_to_file(out_path.join("bindings.rs"))
+            .expect("Couldn't write bindings!");
 }
