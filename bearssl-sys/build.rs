@@ -5,7 +5,7 @@ extern crate git2;
 use std::env;
 use std::path::PathBuf;
 
-use git2::{ErrorCode, Repository};
+use git2::Repository;
 
 fn main() {
     let bearssl_root = find_bearssl_root();
@@ -401,8 +401,16 @@ fn gen_bindings(root: &PathBuf) {
 
     println!("cargo:rerun-if-changed={}", header.to_str().unwrap());
 
+    // HINT: https://github.com/rust-lang/rust-bindgen/issues/1229
+    // export BINDGEN_EXTRA_CLANG_ARGS="--sysroot /path/to/sysroot -I/other/header/dir"
+    // Use absolute paths- no MSYS2 shortcuts like "/opt"; use "C:/msys64/opt/".
     let bindings = bindgen::Builder::default()
         .header(header.to_str().unwrap())
+        .ctypes_prefix("cty")
+        .use_core()
+        .clang_arg("-target") // Not sure if required- bindings "work" without this or sysroot
+                              // or some other combo of command-line options I forget.
+        .clang_arg(env::var("TARGET").unwrap())
         .generate()
         .expect("Unable to generate bindings");
 
