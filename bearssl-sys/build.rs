@@ -14,23 +14,23 @@ fn main() {
     let mut bearssl_root = PathBuf::from(&bearssl_dir.unwrap_or(env::var("OUT_DIR").unwrap()));
 
     if use_git {
+        let git_root = bearssl_root.join("bearssl");
         let repo_exists = if env::var_os("BEARSSL_BUILD_DBG").is_some() {
-            Repository::discover(&bearssl_root).is_ok()
+            Repository::discover(&git_root).is_ok()
         } else {
             false
         };
 
         if !repo_exists {
-            bearssl_root = bearssl_root.join("bearssl");
             let url = "https://www.bearssl.org/git/BearSSL";
-            let repo = match Repository::clone(url, &bearssl_root) {
+            let repo = match Repository::clone(url, &git_root) {
                 Ok(repo) => repo,
                 Err(e) => {
                     panic!("failed to clone BearSSL from {}: {}", url, e)
                 },
             };
         } else {
-            bearssl_root = bearssl_root.join("bearssl");
+            bearssl_root = git_root.clone();
             println!("Build debug mode: using existing BearSSL repo.");
         }
     }
