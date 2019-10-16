@@ -11,3 +11,4 @@ edition = "2018"
 [build-dependencies]
 cc = "1.0.45"
 git2 = "0.10.1"
+bindgen = "0.50"
